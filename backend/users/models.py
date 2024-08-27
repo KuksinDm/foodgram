@@ -3,8 +3,8 @@ from django.db import models
 from django.core.exceptions import ValidationError
 from django.contrib.auth import get_user_model
 
-from api.constants import (MAX_EMAIL_LENGTH, MAX_USER_LENGTH)
-# from api.validators import characters_validator, validate_username
+from recipes.constants import (MAX_EMAIL_LENGTH, MAX_USER_LENGTH)
+from recipes.validators import username_validator, validate_username
 
 
 class CustomUser(AbstractUser):
@@ -12,14 +12,14 @@ class CustomUser(AbstractUser):
         'Электронная почта',
         max_length=MAX_EMAIL_LENGTH,
         unique=True,
-        help_text='Обязательное поле, не может быть пустым.'
+        help_text='Обязательное поле.'
     )
     username = models.CharField(
         'Имя пользователя',
         max_length=MAX_USER_LENGTH,
         unique=True,
-        help_text='Обязательное поле, не может быть пустым.',
-        # validators=[characters_validator, validate_username],
+        help_text='Обязательное поле.',
+        validators=[username_validator, validate_username],
         error_messages={
             'unique': 'Пользователь с таким именем уже существует.',
         },
@@ -27,11 +27,18 @@ class CustomUser(AbstractUser):
     first_name = models.CharField(
         'Имя',
         max_length=MAX_USER_LENGTH,
-        blank=True
+        blank=True,
+        help_text='Обязательное поле.'
     )
     last_name = models.CharField(
         'Фамилия',
         max_length=MAX_USER_LENGTH,
+        blank=True,
+        help_text='Обязательное поле.'
+    )
+    avatar = models.ImageField(
+        upload_to='avatars/',
+        null=True,
         blank=True
     )
 
@@ -64,21 +71,17 @@ class Follow(models.Model):
     class Meta:
         verbose_name = 'подписка'
         verbose_name_plural = 'Подписка'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['user', 'following'],
-                name='unique_follow')
-        ]
+        unique_together = ('user', 'following')
 
     def clean(self):
         if self.user == self.following:
             raise ValidationError(
-                "Пользователь не может подписаться сам на себя.")
+                'Пользователь не может подписаться сам на себя.')
         if Follow.objects.filter(
             user=self.user,
             following=self.following
         ).exists():
-            raise ValidationError("Такая подписка уже существует.")
+            raise ValidationError('Такая подписка уже существует.')
 
     def save(self, *args, **kwargs):
         self.clean()
