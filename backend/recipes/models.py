@@ -71,7 +71,8 @@ class Recipe(models.Model):
     image = models.ImageField(
         upload_to='recipes/images/',
         null=True,
-        default=None
+        default=None,
+        verbose_name='Изображение рецепта'
     )
     text = models.TextField(
         verbose_name='Текст рецепта',
@@ -128,9 +129,14 @@ class RecipeIngredient(models.Model):
     )
     ingredient = models.ForeignKey(
         Ingredient,
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
+        verbose_name='Ингридиент',
     )
-    amount = models.DecimalField(max_digits=6, decimal_places=2)
+    amount = models.DecimalField(
+        max_digits=6,
+        decimal_places=2,
+        verbose_name='Количество',
+    )
 
     class Meta:
         constraints = [

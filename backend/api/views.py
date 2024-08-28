@@ -240,34 +240,34 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     @action(
         detail=True,
-        methods=['post'],
-        permission_classes=(permissions.IsAuthenticated,)
+        methods=['POST', 'DELETE'],
+        permission_classes=(permissions.IsAuthenticated,),
+        url_path='shopping_cart'
     )
-    def shopping_cart(self, request, pk=None):
+    def manage_shopping_cart(self, request, pk=None):
         user = request.user
         recipe = get_object_or_404(Recipe, pk=pk)
 
-        if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
+        if request.method == 'POST':
+            if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
+                return Response(
+                    {'detail': 'Рецепт уже добавлен в корзину покупок.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            ShoppingList.objects.create(user=user, recipe=recipe)
+            serializer = ShoppingListSerializer(recipe)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        if request.method == 'DELETE':
+            shopping_item = ShoppingList.objects.filter(
+                user=user, recipe=recipe)
+            if shopping_item.exists():
+                shopping_item.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
             return Response(
-                {'detail': 'Рецепт уже добавлен в корзину покупок.'},
+                {'detail': 'Рецепт не найден в списке покупок.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        ShoppingList.objects.create(user=user, recipe=recipe)
-        serializer = ShoppingListSerializer(recipe)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @shopping_cart.mapping.delete
-    def remove_from_shopping_cart(self, request, pk=None):
-        user = request.user
-        recipe = get_object_or_404(Recipe, pk=pk)
-        shopping_item = ShoppingList.objects.filter(user=user, recipe=recipe)
-        if shopping_item.exists():
-            shopping_item.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(
-            {'detail': 'Рецепт не найден в списке покупок.'},
-            status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         detail=False,
