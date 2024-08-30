@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from drf_extra_fields.fields import Base64ImageField
+from decimal import Decimal
 
 from recipes.models import (
     Ingredient,
@@ -13,9 +14,17 @@ from recipes.constants import MIN_INGREDIENTS
 User = get_user_model()
 
 
+class AvatarSerializer(serializers.ModelSerializer):
+    avatar = Base64ImageField(required=False, allow_null=True)
+
+    class Meta:
+        model = User
+        fields = ('avatar',)
+
+
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    avatar = serializers.ImageField(required=False, allow_null=True)
+    avatar = Base64ImageField(read_only=True)  # думаю это не правильно но пока рабатает
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -30,10 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
             'avatar',
             'is_subscribed'
         )
-    """
-    не знаю на сколько оправдано использование to_representation,
-    или стоило просто сделать несколько разных Serializer'ов
-    """
+
     def to_representation(self, instance):
         representation = super().to_representation(instance)
         request = self.context.get('request')
@@ -41,9 +47,6 @@ class UserSerializer(serializers.ModelSerializer):
 
         if view and hasattr(view, 'basename') and view.basename == 'recipe':
             return representation
-
-        if request and request.method == 'PUT':
-            return {'avatar': representation.get('avatar')}
 
         if request and request.method == 'POST':
             representation.pop('avatar', None)
@@ -216,7 +219,7 @@ class RecipeSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     {'ingredients': f'Ингредиент с ID {ingredient_id}'
                       'не существует.'})
-            if ingredient['amount'] < MIN_INGREDIENTS:
+            if Decimal(ingredient['amount']) < MIN_INGREDIENTS:
                 raise serializers.ValidationError(
                     {'ingredients': 'Количество ингредиента '
                      'должно быть больше 0.'})

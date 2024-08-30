@@ -9,6 +9,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from .serializers import (
+    AvatarSerializer,
     FollowSerializer,
     RecipeSerializer,
     RecipeShortSerializer,
@@ -56,23 +57,29 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path='me/avatar'
     )
     def update_avatar(self, request):
-        user = request.user
-        avatar = request.data.get('avatar')
-
         if request.method == 'PUT':
-            if avatar:
-                user.avatar = avatar
-                user.save()
-                serializer = UserSerializer(user, context={'request': request})
+            if 'avatar' not in request.data:
+                return Response(
+                    {'detail': 'Поле `avatar` обязательно.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+            serializer = AvatarSerializer(
+                request.user,
+                data=request.data,
+                context={'request': request}
+            )
+            if serializer.is_valid():
+                serializer.save()
                 return Response(serializer.data, status=status.HTTP_200_OK)
             return Response(
-                {'detail': 'Аватар не предоставлен.'},
+                serializer.errors,
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         if request.method == 'DELETE':
-            user.avatar = None
-            user.save()
+            request.user.avatar = None
+            request.user.save()
             return Response(
                 {'detail': 'Аватар успешно удален.'},
                 status=status.HTTP_204_NO_CONTENT
