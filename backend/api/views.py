@@ -1,5 +1,5 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect, get_object_or_404
 from django.db.models import Prefetch
 from django.http import HttpResponse
 
@@ -17,7 +17,7 @@ from .serializers import (
     PasswordSerializer,
     ShoppingListSerializer,
     ShoppingListDownloadSerializer,
-    ShortLinkRecipeSerializer,
+    ShortLinkSerializer,
     TagSerializer,
     UserSerializer
 )
@@ -240,10 +240,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
-        recipe = self.get_object()
-        serializer = ShortLinkRecipeSerializer(
-            recipe, context={'request': request})
-        return Response(serializer.data)
+        recipe = get_object_or_404(Recipe, pk=pk)
+        serializer = ShortLinkSerializer(recipe, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         detail=True,
@@ -323,3 +322,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 {'detail': 'Рецепт не найден в избранном.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
+
+class ShortLinkViewSet(viewsets.ViewSet):
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+
+    def redirect_short_link(self, request, short_id=None):
+        recipe = get_object_or_404(Recipe, short_id=short_id)
+        recipe_detail_url = f'/recipes/{recipe.id}/'
+        return redirect(recipe_detail_url)

@@ -24,7 +24,7 @@ class AvatarSerializer(serializers.ModelSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-    avatar = Base64ImageField(read_only=True)  # думаю это не правильно но пока рабатает
+    avatar = Base64ImageField(read_only=True)
     is_subscribed = serializers.SerializerMethodField()
 
     class Meta:
@@ -173,12 +173,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             return user.shopping_cart.filter(recipe=obj).exists()
         return False
 
-    def get_short_link(self, obj):
-        request = self.context.get('request')
-        if request is not None:
-            return request.build_absolute_uri(f'/api/recipes/{obj.short_id}/')
-        return None
-
     def validate(self, attrs):
         tags = self.initial_data.get('tags')
 
@@ -225,25 +219,6 @@ class RecipeSerializer(serializers.ModelSerializer):
                      'должно быть больше 0.'})
 
         return attrs
-
-
-class ShortLinkRecipeSerializer(serializers.ModelSerializer):
-    short_link = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Recipe
-        fields = ('short_link',)
-
-    def get_short_link(self, obj):
-        request = self.context.get('request')
-        if request is not None:
-            return request.build_absolute_uri(f'/api/recipes/{obj.short_id}/')
-        return None
-
-    def to_representation(self, instance):
-        representation = super().to_representation(instance)
-        representation['short-link'] = representation.pop('short_link')
-        return representation
 
 
 class RecipeShortSerializer(serializers.ModelSerializer):
@@ -324,3 +299,19 @@ class ShoppingListDownloadSerializer(serializers.Serializer):
 
     def to_representation(self, instance):
         return {'content': instance}
+
+
+class ShortLinkSerializer(serializers.Serializer):
+    short_link = serializers.SerializerMethodField()
+
+    def get_short_link(self, obj):
+        request = self.context.get('request')
+        short_id = obj.short_id
+        if request and short_id:
+            return request.build_absolute_uri(f"/s/{short_id}/")
+        return None
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        representation['short-link'] = representation.pop('short_link')
+        return representation
