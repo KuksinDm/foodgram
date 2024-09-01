@@ -1,30 +1,21 @@
 from django.contrib.auth import get_user_model
-from django.shortcuts import redirect, get_object_or_404
 from django.http import HttpResponse
-
-from rest_framework import filters, permissions, status, viewsets
+from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
+from recipes.filters import IngredientFilter, RecipeFilter
+from recipes.models import Favorite, Ingredient, Recipe, ShoppingList, Tag
+from recipes.pagination import PageLimitPaginator
+from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
-
-from .serializers import (
-    AvatarSerializer,
-    FollowSerializer,
-    RecipeSerializer,
-    RecipeShortSerializer,
-    IngredientSerializer,
-    PasswordSerializer,
-    ShoppingListSerializer,
-    ShoppingListDownloadSerializer,
-    ShortLinkSerializer,
-    TagSerializer,
-    UserSerializer
-)
-from recipes.filters import IngredientFilter, RecipeFilter
-from recipes.models import Favorite, Recipe, Tag, Ingredient, ShoppingList
 from users.models import Follow
-from recipes.pagination import PageLimitPaginator
 
+from .serializers import (AvatarSerializer, FollowSerializer,
+                          IngredientSerializer, PasswordSerializer,
+                          RecipeSerializer, RecipeShortSerializer,
+                          ShoppingListDownloadSerializer,
+                          ShoppingListSerializer, ShortLinkSerializer,
+                          TagSerializer, UserSerializer)
 
 User = get_user_model()
 

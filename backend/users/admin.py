@@ -1,10 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Count
-
-
-from recipes.forms import RecipeIngredientFormSet, RecipeForm
-from recipes.models import Recipe, Ingredient, RecipeIngredient, Tag, Favorite
+from recipes.forms import RecipeForm, RecipeIngredientFormSet
+from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, Tag
 
 User = get_user_model()
 
