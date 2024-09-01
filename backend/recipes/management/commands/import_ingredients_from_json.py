@@ -19,7 +19,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         filename = options['filename']
-        path = os.path.join(settings.BASE_DIR, 'static/data/', filename)
+        path = os.path.join(settings.BASE_DIR, 'data/', filename)
 
         if not os.path.exists(path):
             self.stdout.write(
