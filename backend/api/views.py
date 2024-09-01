@@ -1,6 +1,5 @@
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect, get_object_or_404
-from django.db.models import Prefetch
 from django.http import HttpResponse
 
 from rest_framework import filters, permissions, status, viewsets
@@ -112,28 +111,24 @@ class UserViewSet(viewsets.ModelViewSet):
     )
     def subscriptions(self, request):
         queryset = User.objects.filter(
-            following__user=request.user
-        ).prefetch_related(
-            Prefetch('recipes', queryset=Recipe.objects.all())
-        ).order_by('pk')
+            following__user=request.user).prefetch_related(
+                'recipes').order_by('pk')
 
-        recipes_limit = request.query_params.get('recipes_limit')
         page = self.paginate_queryset(queryset)
-        users = page if page else queryset
+        if page is not None:
+            serializer = FollowSerializer(
+                page,
+                many=True,
+                context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
+
         serializer = FollowSerializer(
-            users, many=True, context={'request': request}
+            queryset,
+            many=True,
+            context={'request': request}
         )
-
-        data = serializer.data
-        if recipes_limit is not None:
-            recipes_limit = int(recipes_limit)
-            for user_data in data:
-                user_data['recipes'] = user_data['recipes'][:recipes_limit]
-
-        return self.get_paginated_response(data) if page else Response(
-            data,
-            status=status.HTTP_200_OK
-        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(
         detail=True,
