@@ -1,8 +1,11 @@
+from django.contrib.auth import get_user_model
 from django_filters.rest_framework import (BooleanFilter, CharFilter,
                                            FilterSet,
                                            ModelMultipleChoiceFilter)
 
 from .models import Ingredient, Recipe, Tag
+
+User = get_user_model()
 
 
 class IngredientFilter(FilterSet):
@@ -44,3 +47,11 @@ class RecipeFilter(FilterSet):
         if value:
             return queryset.filter(in_shopping_carts__user=user)
         return queryset.exclude(in_shopping_carts__user=user)
+
+
+class UserFilter(FilterSet):
+    username = CharFilter(lookup_expr='icontains')
+
+    class Meta:
+        model = User
+        fields = ['username']

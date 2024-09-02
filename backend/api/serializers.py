@@ -252,29 +252,14 @@ class FollowSerializer(serializers.ModelSerializer):
         return False
 
 
-class ShoppingListSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time')
-
-    def to_representation(self, instance):
-        return {
-            'id': instance.id,
-            'name': instance.name,
-            'image': instance.image.url if instance.image else None,
-            'cooking_time': instance.cooking_time
-        }
-
-
 class ShoppingListDownloadSerializer(serializers.Serializer):
     content = serializers.CharField()
 
     def get_shopping_list_content(self, user):
-        recipes = RecipeIngredient.objects.filter(
-            recipe__in=user.shopping_cart.values_list('recipe', flat=True)
-        )
         shopping_list = {}
-        for item in recipes:
+        for item in RecipeIngredient.objects.filter(
+                recipe__in=user.shopping_cart.values_list(
+                    'recipe', flat=True)):
             name = item.ingredient.name
             measurement_unit = item.ingredient.measurement_unit
             amount = item.amount
