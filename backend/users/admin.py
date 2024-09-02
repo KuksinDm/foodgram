@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.db.models import Count
+
 from recipes.forms import RecipeForm, RecipeIngredientFormSet
 from recipes.models import Favorite, Ingredient, Recipe, RecipeIngredient, Tag
 

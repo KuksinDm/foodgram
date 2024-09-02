@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
 from django.db import models
+
 from recipes.constants import MAX_EMAIL_LENGTH, MAX_USER_LENGTH
 from recipes.validators import username_validator, validate_username
 
