@@ -139,10 +139,10 @@ jobs:
           sudo docker compose -f docker-compose.production.yml up -d
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
-          sudo docker compose -f docker-compose.production.yml exec backend python manage.py createsuperuser_custom 
+          sudo docker compose -f docker-compose.production.yml exec backend python manage.py createsuperuser_custom
+          sudo docker compose -f docker-compose.production.yml exec backend python manage.py createregularuser_custom
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata data/ingredients.json
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata data/tags.json
-          sudo docker compose -f docker-compose.production.yml exec backend python manage.py loaddata data/users.json
           sudo docker compose -f docker-compose.production.yml exec backend python manage.py load_csv ingredients.csv
   
   send_message:
