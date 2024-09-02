@@ -6,16 +6,22 @@ from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from .serializers import (
+    AvatarSerializer,
+    FollowSerializer,
+    IngredientSerializer,
+    PasswordSerializer,
+    RecipeSerializer,
+    RecipeShortSerializer,
+    ShoppingListDownloadSerializer,
+    ShortLinkSerializer,
+    TagSerializer,
+    UserSerializer,
+)
 from recipes.filters import IngredientFilter, RecipeFilter, UserFilter
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingList, Tag
 from recipes.pagination import PageLimitPaginator
 from users.models import Follow
-
-from .serializers import (AvatarSerializer, FollowSerializer,
-                          IngredientSerializer, PasswordSerializer,
-                          RecipeSerializer, RecipeShortSerializer,
-                          ShoppingListDownloadSerializer, ShortLinkSerializer,
-                          TagSerializer, UserSerializer)
 
 User = get_user_model()
 

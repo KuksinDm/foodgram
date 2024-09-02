@@ -3,9 +3,15 @@ from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
-from .constants import (MAX_ID_LENGTH, MAX_INGREDIENT_LENGTH, MAX_LENGTH,
-                        MAX_MEASUREMENT_LENGTH, MAX_URL_LENGTH, MIN_COOK_TIME,
-                        TAG_LENGTH)
+from .constants import (
+    MAX_ID_LENGTH,
+    MAX_INGREDIENT_LENGTH,
+    MAX_LENGTH,
+    MAX_MEASUREMENT_LENGTH,
+    MAX_URL_LENGTH,
+    MIN_COOK_TIME,
+    TAG_LENGTH,
+)
 from .validators import characters_validator
 
 User = get_user_model()
