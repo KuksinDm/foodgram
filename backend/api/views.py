@@ -191,15 +191,13 @@ class IngredientViewSet(viewsets.ReadOnlyModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
-    permission_classes = (permissions.IsAuthenticatedOrReadOnly,)
+    permission_classes = (
+        permissions.IsAuthenticatedOrReadOnly,
+        IsAuthorOrReadOnly
+    )
     pagination_class = PageLimitPaginator
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
-
-    def get_permissions(self):
-        if self.action in ['update', 'destroy']:
-            return [IsAuthorOrReadOnly()]
-        return super().get_permissions()
 
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
