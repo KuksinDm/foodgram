@@ -56,19 +56,17 @@ class UserSerializer(serializers.ModelSerializer):
             return obj.following.filter(user=request.user).exists()
         return False
 
-    def validate_required_fields(self, attrs, *fields):
-        for field in fields:
-            if field not in attrs:
-                raise serializers.ValidationError({
-                    field: (
-                        f'{field.replace("_", " ").capitalize()} обязательно.'
-                    )
-                })
-        return attrs
-
     def validate(self, attrs):
-        return self.validate_required_fields(
-            attrs, 'password', 'first_name', 'last_name')
+        if 'password' not in attrs:
+            raise serializers.ValidationError(
+                {'password': 'Пароль обязателен.'})
+        if 'first_name' not in attrs:
+            raise serializers.ValidationError(
+                {'first_name': 'Имя обязательно.'})
+        if 'last_name' not in attrs:
+            raise serializers.ValidationError(
+                {'last_name': 'Фамилия обязательна.'})
+        return attrs
 
     def create(self, validated_data):
         password = validated_data.pop('password')
