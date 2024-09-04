@@ -4,12 +4,12 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .constants import (
+    MAX_AMOUNT_COOK_TIME,
     MAX_ID_LENGTH,
     MAX_INGREDIENT_LENGTH,
     MAX_LENGTH,
     MAX_MEASUREMENT_LENGTH,
     MAX_URL_LENGTH,
-    MAX_AMOUNT_COOK_TIME,
     MIN_AMOUNT_COOK_TIME,
     TAG_LENGTH,
 )

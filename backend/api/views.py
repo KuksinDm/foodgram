@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404, redirect
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from .serializers import (
     AvatarSerializer,
@@ -16,13 +16,14 @@ from .serializers import (
     RecipeShortSerializer,
     ShoppingListDownloadSerializer,
     ShortLinkSerializer,
+    SubscriptionSerializer,
     TagSerializer,
     UserSerializer,
 )
-from recipes.permissions import IsAuthorOrReadOnly
 from recipes.filters import IngredientFilter, RecipeFilter, UserFilter
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingList, Tag
 from recipes.pagination import PageLimitPaginator
+from recipes.permissions import IsAuthorOrReadOnly
 from users.models import Follow
 
 User = get_user_model()
@@ -139,29 +140,24 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path='subscribe'
     )
     def manage_subscription(self, request, pk=None):
-        user = request.user
-        following = get_object_or_404(User, pk=pk)
-
         if request.method == 'POST':
-            if user == following:
-                return Response(
-                    {'detail': 'Нельзя подписаться на себя.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            if user.follower.filter(following=following).exists():
-                return Response(
-                    {'detail': 'Вы уже подписаны на этого пользователя.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
-            Follow.objects.create(user=user, following=following)
-            serializer = FollowSerializer(
-                following,
+            serializer = SubscriptionSerializer(
+                data={'user_id': pk},
                 context={'request': request}
             )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            serializer.is_valid(raise_exception=True)
+            following = serializer.save()
+            return Response(FollowSerializer(
+                following,
+                context={'request': request}).data,
+                status=status.HTTP_201_CREATED
+            )
 
         if request.method == 'DELETE':
-            subscription = user.follower.filter(following=following)
+            user = request.user
+            following = get_object_or_404(User, pk=pk)
+            subscription = Follow.objects.filter(
+                user=user, following=following)
             if subscription.exists():
                 subscription.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)

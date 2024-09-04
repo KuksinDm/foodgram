@@ -1,10 +1,11 @@
 from django.contrib.auth import get_user_model
 from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import NotFound, ValidationError
 
 from recipes.constants import MAX_AMOUNT_COOK_TIME, MIN_AMOUNT_COOK_TIME
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from users.models import Follow
 
 User = get_user_model()
 
@@ -74,6 +75,34 @@ class UserSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class SubscriptionSerializer(serializers.Serializer):
+    user_id = serializers.IntegerField()
+
+    def validate_user_id(self, value):
+        request = self.context.get('request')
+        user = request.user
+
+        if user.id == value:
+            raise serializers.ValidationError('Нельзя подписаться на себя.')
+
+        following = User.objects.filter(pk=value).first()
+
+        if not following:
+            raise NotFound('Пользователь не найден.')
+
+        if Follow.objects.filter(user=user, following=following).exists():
+            raise serializers.ValidationError(
+                'Вы уже подписаны на этого пользователя.')
+
+        return value
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        following = User.objects.get(pk=validated_data['user_id'])
+        Follow.objects.create(user=user, following=following)
+        return following
 
 
 class PasswordSerializer(serializers.Serializer):
