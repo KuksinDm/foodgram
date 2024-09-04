@@ -5,6 +5,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.exceptions import ValidationError
 
 from .serializers import (
     AvatarSerializer,
@@ -18,6 +19,7 @@ from .serializers import (
     TagSerializer,
     UserSerializer,
 )
+from recipes.permissions import IsAuthorOrReadOnly
 from recipes.filters import IngredientFilter, RecipeFilter, UserFilter
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingList, Tag
 from recipes.pagination import PageLimitPaginator
@@ -62,25 +64,18 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'PUT':
             avatar = request.data.get('avatar')
             if not avatar:
-                return Response(
-                    {'detail': 'Поле `avatar` обязательно.'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+                raise ValidationError({'detail': 'Поле `avatar` обязательно.'})
 
             serializer = AvatarSerializer(
                 request.user,
                 data=request.data,
                 context={'request': request}
             )
-            if serializer.is_valid():
-                serializer.save()
-                return Response(
-                    serializer.data,
-                    status=status.HTTP_200_OK
-                )
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
             return Response(
-                serializer.errors,
-                status=status.HTTP_400_BAD_REQUEST
+                serializer.data,
+                status=status.HTTP_200_OK
             )
 
         if request.method == 'DELETE':
@@ -153,7 +148,7 @@ class UserViewSet(viewsets.ModelViewSet):
                     {'detail': 'Нельзя подписаться на себя.'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
-            if Follow.objects.filter(user=user, following=following).exists():
+            if user.follower.filter(following=following).exists():
                 return Response(
                     {'detail': 'Вы уже подписаны на этого пользователя.'},
                     status=status.HTTP_400_BAD_REQUEST
@@ -166,10 +161,7 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         if request.method == 'DELETE':
-            subscription = Follow.objects.filter(
-                user=user,
-                following=following
-            )
+            subscription = user.follower.filter(following=following)
             if subscription.exists():
                 subscription.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -204,6 +196,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipeFilter
 
+    def get_permissions(self):
+        if self.action in ['update', 'destroy']:
+            return [IsAuthorOrReadOnly()]
+        return super().get_permissions()
+
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
@@ -214,11 +211,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if request.user != self.object.author:
-            return Response(
-                {'detail': 'У вас нет прав редактировать этот рецепт.'},
-                status=status.HTTP_403_FORBIDDEN
-            )
         serializer = self.get_serializer(
             self.object, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -227,11 +219,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         self.object = self.get_object()
-        if request.user != self.object.author:
-            return Response(
-                {'detail': 'У вас нет прав удалять этот рецепт.'},
-                status=status.HTTP_403_FORBIDDEN
-            )
         self.object.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -272,7 +259,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(
         detail=True,
         methods=['GET'],
-        permission_classes=(permissions.IsAuthenticatedOrReadOnly,),
         url_path='get-link'
     )
     def get_link(self, request, pk=None):
@@ -310,12 +296,6 @@ class RecipeViewSet(viewsets.ModelViewSet):
         )
         return response
 
-    @action(
-        detail=True,
-        methods=['POST', 'DELETE'],
-        permission_classes=(permissions.IsAuthenticated,),
-        url_path='favorite'
-    )
     @action(
         detail=True,
         methods=['POST', 'DELETE'],

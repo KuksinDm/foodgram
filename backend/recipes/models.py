@@ -1,6 +1,6 @@
 import shortuuid
 from django.contrib.auth import get_user_model
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .constants import (
@@ -9,7 +9,8 @@ from .constants import (
     MAX_LENGTH,
     MAX_MEASUREMENT_LENGTH,
     MAX_URL_LENGTH,
-    MIN_COOK_TIME,
+    MAX_AMOUNT_COOK_TIME,
+    MIN_AMOUNT_COOK_TIME,
     TAG_LENGTH,
 )
 from .validators import characters_validator
@@ -33,6 +34,7 @@ class Tag(models.Model):
     class Meta:
         verbose_name = 'Тег'
         verbose_name_plural = 'Теги'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -51,6 +53,7 @@ class Ingredient(models.Model):
     class Meta:
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -88,13 +91,19 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Тэги рецепта'
     )
-    cooking_time = models.PositiveIntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления рецепта',
         validators=[
             MinValueValidator(
-                MIN_COOK_TIME,
-                f'Минимальное время приготовления: {MIN_COOK_TIME} минута'
+                MIN_AMOUNT_COOK_TIME,
+                'Минимальное время приготовления: '
+                f'{MIN_AMOUNT_COOK_TIME} минута'
             ),
+            MaxValueValidator(
+                MAX_AMOUNT_COOK_TIME,
+                'Максимальное время приготовления: '
+                f'{MAX_AMOUNT_COOK_TIME} минут'
+            )
         ]
     )
     pub_date = models.DateTimeField(
@@ -105,7 +114,8 @@ class Recipe(models.Model):
         max_length=MAX_ID_LENGTH,
         unique=True,
         blank=True,
-        editable=False
+        editable=False,
+        verbose_name='Короткий идентификатор'
     )
 
     class Meta:
@@ -125,17 +135,26 @@ class Recipe(models.Model):
 class RecipeIngredient(models.Model):
     recipe = models.ForeignKey(
         Recipe,
+        verbose_name='Рецепт',
         on_delete=models.CASCADE
     )
     ingredient = models.ForeignKey(
         Ingredient,
         on_delete=models.CASCADE,
-        verbose_name='Ингридиент',
+        verbose_name='Ингредиент',
     )
-    amount = models.DecimalField(
-        max_digits=6,
-        decimal_places=2,
+    amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
+        validators=[
+            MinValueValidator(
+                MIN_AMOUNT_COOK_TIME,
+                f'Минимальное количество ингредиента: {MIN_AMOUNT_COOK_TIME}'
+            ),
+            MaxValueValidator(
+                MAX_AMOUNT_COOK_TIME,
+                f'Максимальное количество ингредиента: {MAX_AMOUNT_COOK_TIME}'
+            )
+        ]
     )
 
     class Meta:
@@ -147,6 +166,7 @@ class RecipeIngredient(models.Model):
         ]
         verbose_name = 'Ингредиент в рецепте'
         verbose_name_plural = 'Ингредиенты в рецептах'
+        ordering = ['recipe', 'ingredient']
 
     def __str__(self):
         return (
@@ -194,8 +214,8 @@ class ShoppingList(models.Model):
     )
 
     class Meta:
-        verbose_name = "Список покупок"
-        verbose_name_plural = "Список покупок"
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Список покупок'
         ordering = ['user']
 
     def __str__(self):
