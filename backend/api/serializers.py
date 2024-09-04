@@ -56,17 +56,19 @@ class UserSerializer(serializers.ModelSerializer):
             return obj.following.filter(user=request.user).exists()
         return False
 
-    def validate(self, attrs):
-        if 'password' not in attrs:
-            raise serializers.ValidationError(
-                {'password': 'Пароль обязателен.'})
-        if 'first_name' not in attrs:
-            raise serializers.ValidationError(
-                {'first_name': 'Имя обязательно.'})
-        if 'last_name' not in attrs:
-            raise serializers.ValidationError(
-                {'last_name': 'Фамилия обязательна.'})
+    def validate_required_fields(self, attrs, *fields):
+        for field in fields:
+            if field not in attrs:
+                raise serializers.ValidationError({
+                    field: (
+                        f'{field.replace("_", " ").capitalize()} обязательно.'
+                    )
+                })
         return attrs
+
+    def validate(self, attrs):
+        return self.validate_required_fields(
+            attrs, 'password', 'first_name', 'last_name')
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -151,11 +153,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         if not all(isinstance(tag_id, int) for tag_id in value):
             raise ValidationError('Каждый тег должен быть целым числом.')
 
-        existing_tags = Tag.objects.filter(
-            id__in=value).values_list('id', flat=True)
-        non_existing_tags = set(value) - set(existing_tags)
-        if non_existing_tags:
-            raise ValidationError('Указан несуществующий тег.')
+        existing_tags = Tag.objects.in_bulk(value)
+        if len(existing_tags) != len(value):
+            non_existing_tags = set(value) - set(existing_tags.keys())
+            raise ValidationError(
+                'Указан несуществующий тег: '
+                f'{", ".join(map(str, non_existing_tags))}'
+            )
         if len(value) != len(set(value)):
             raise ValidationError('Теги должны быть уникальными.')
         return value
@@ -274,7 +278,7 @@ class FollowSerializer(serializers.ModelSerializer):
     def get_recipes(self, obj):
         request = self.context['request']
         recipes_limit = request.query_params.get('recipes_limit')
-        recipes = obj.recipes.all()
+        recipes = obj.recipes.all().prefetch_related('author')
         if recipes_limit:
             recipes = recipes[:int(recipes_limit)]
         return RecipeShortSerializer(recipes, many=True).data
