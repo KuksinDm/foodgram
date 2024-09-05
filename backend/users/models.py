@@ -70,18 +70,18 @@ class Follow(models.Model):
 
     class Meta:
         verbose_name = 'подписка'
-        verbose_name_plural = 'Подписка'
-        unique_together = ('user', 'following')
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'following'],
+                name='unique_follow'
+            )
+        ]
 
     def clean(self):
         if self.user == self.following:
             raise ValidationError(
                 'Пользователь не может подписаться сам на себя.')
-        if Follow.objects.filter(
-            user=self.user,
-            following=self.following
-        ).exists():
-            raise ValidationError('Такая подписка уже существует.')
 
     def save(self, *args, **kwargs):
         self.clean()

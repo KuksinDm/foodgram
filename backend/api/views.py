@@ -140,13 +140,25 @@ class UserViewSet(viewsets.ModelViewSet):
         url_path='subscribe'
     )
     def manage_subscription(self, request, pk=None):
+        user = request.user
+        following = get_object_or_404(User, pk=pk)
+
         if request.method == 'POST':
             serializer = SubscriptionSerializer(
                 data={'user_id': pk},
                 context={'request': request}
             )
             serializer.is_valid(raise_exception=True)
-            following = serializer.save()
+
+            follow, created = Follow.objects.get_or_create(
+                user=user,
+                following=following
+            )
+            if not created:
+                return Response(
+                    {'detail': 'Вы уже подписаны на этого пользователя.'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             return Response(FollowSerializer(
                 following,
                 context={'request': request}).data,
@@ -154,10 +166,7 @@ class UserViewSet(viewsets.ModelViewSet):
             )
 
         if request.method == 'DELETE':
-            user = request.user
-            following = get_object_or_404(User, pk=pk)
-            subscription = Follow.objects.filter(
-                user=user, following=following)
+            subscription = user.follower.filter(following=following)
             if subscription.exists():
                 subscription.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
