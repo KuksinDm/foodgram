@@ -3,10 +3,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from recipes.constants import (
-    MAX_AMOUNT_COOK_TIME,
-    MIN_AMOUNT_COOK_TIME,
-)
+from recipes.constants import MAX_AMOUNT_COOK_TIME, MIN_AMOUNT_COOK_TIME
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 User = get_user_model()
