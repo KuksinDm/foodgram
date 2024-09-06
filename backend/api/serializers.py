@@ -3,7 +3,11 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from recipes.constants import MAX_AMOUNT_COOK_TIME, MIN_AMOUNT_COOK_TIME
+from recipes.constants import (
+    MAX_AMOUNT_COOK_TIME,
+    MAX_DIGITS_FOR_INPUT,
+    MIN_AMOUNT_COOK_TIME,
+)
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 User = get_user_model()
@@ -123,7 +127,15 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     def validate_amount(self, value):
         if value > MAX_AMOUNT_COOK_TIME:
             raise serializers.ValidationError(
-                'Слишком большое количество ингредиента.')
+                'Максимальное количество ингредиента не может превышать '
+                f'{MAX_AMOUNT_COOK_TIME}.'
+            )
+        if len(str(value)) > MAX_DIGITS_FOR_INPUT:
+            raise serializers.ValidationError(
+                'Ингредиент должен содержать не более '
+                f'{MAX_DIGITS_FOR_INPUT} знаков.'
+            )
+
         return value
 
     class Meta:
@@ -156,7 +168,14 @@ class RecipeSerializer(serializers.ModelSerializer):
     def validate_cooking_time(self, value):
         if value > MAX_AMOUNT_COOK_TIME:
             raise serializers.ValidationError(
-                'Слишком большое время приготовления.')
+                'Максимальное время приготовления не может превышать '
+                f'{MAX_AMOUNT_COOK_TIME} минут.'
+            )
+        if len(str(value)) > MAX_DIGITS_FOR_INPUT:
+            raise serializers.ValidationError(
+                'Время приготовления должно содержать не более '
+                f'{MAX_DIGITS_FOR_INPUT} знаков.'
+            )
         return value
 
     def validate_ingredients(self, value):
