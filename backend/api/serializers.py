@@ -115,6 +115,16 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
+    amount = serializers.IntegerField(
+        min_value=MIN_AMOUNT_COOK_TIME,
+        max_value=MAX_AMOUNT_COOK_TIME
+    )
+
+    def validate_amount(self, value):
+        if value > MAX_AMOUNT_COOK_TIME:
+            raise serializers.ValidationError(
+                'Слишком большое количество ингредиента.')
+        return value
 
     class Meta:
         model = RecipeIngredient
@@ -142,6 +152,12 @@ class RecipeSerializer(serializers.ModelSerializer):
             'is_favorited', 'is_in_shopping_cart', 'name',
             'image', 'text', 'cooking_time'
         )
+
+    def validate_cooking_time(self, value):
+        if value > MAX_AMOUNT_COOK_TIME:
+            raise serializers.ValidationError(
+                'Слишком большое время приготовления.')
+        return value
 
     def validate_ingredients(self, value):
         if not value:
