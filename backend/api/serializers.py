@@ -152,17 +152,16 @@ class RecipeSerializer(serializers.ModelSerializer):
         )
 
     def validate_amount(self, value):
-        if value > MAX_AMOUNT_COOK_TIME:
-            raise serializers.ValidationError(
-                'Максимальное количество ингредиента не может превышать '
-                f'{MAX_AMOUNT_COOK_TIME}.'
-            )
         if len(str(value)) > MAX_DIGITS_FOR_INPUT:
             raise serializers.ValidationError(
                 'Ингредиент должен содержать не более '
                 f'{MAX_DIGITS_FOR_INPUT} знаков.'
             )
-
+        if value > MAX_AMOUNT_COOK_TIME:
+            raise serializers.ValidationError(
+                'Максимальное количество ингредиента не может превышать '
+                f'{MAX_AMOUNT_COOK_TIME}.'
+            )
         return value
 
     def validate_cooking_time(self, value):
@@ -213,10 +212,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags_data = self.initial_data.get('tags', None)
         ingredients_data = validated_data.pop('recipeingredient_set', None)
         image_data = validated_data.get('image', None)
+        cooking_time = validated_data.get('cooking_time')
 
         self.validate_tags(tags_data)
         self.validate_ingredients(ingredients_data)
         self.validate_image(image_data)
+        self.validate_cooking_time(cooking_time)
 
         recipe = Recipe.objects.create(**validated_data)
         self._create_recipe_ingredients(recipe, ingredients_data)
@@ -227,10 +228,12 @@ class RecipeSerializer(serializers.ModelSerializer):
         tags_data = self.initial_data.get('tags', [])
         ingredients_data = validated_data.pop('recipeingredient_set', [])
         image_data = validated_data.pop('image', None)
+        cooking_time = validated_data.get('cooking_time')
 
         self.validate_tags(tags_data)
         self.validate_ingredients(ingredients_data)
         self.validate_image(image_data)
+        self.validate_cooking_time(cooking_time)
 
         instance.save()
         instance.tags.set(tags_data)
