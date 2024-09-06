@@ -5,7 +5,6 @@ from rest_framework.exceptions import ValidationError
 
 from recipes.constants import (
     MAX_AMOUNT_COOK_TIME,
-    MAX_DIGITS_FOR_INPUT,
     MIN_AMOUNT_COOK_TIME,
 )
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
@@ -130,12 +129,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
                 'Максимальное количество ингредиента не может превышать '
                 f'{MAX_AMOUNT_COOK_TIME}.'
             )
-        if len(str(value)) > MAX_DIGITS_FOR_INPUT:
-            raise serializers.ValidationError(
-                'Ингредиент должен содержать не более '
-                f'{MAX_DIGITS_FOR_INPUT} знаков.'
-            )
-
         return value
 
     class Meta:
@@ -170,11 +163,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 'Максимальное время приготовления не может превышать '
                 f'{MAX_AMOUNT_COOK_TIME} минут.'
-            )
-        if len(str(value)) > MAX_DIGITS_FOR_INPUT:
-            raise serializers.ValidationError(
-                'Время приготовления должно содержать не более '
-                f'{MAX_DIGITS_FOR_INPUT} знаков.'
             )
         return value
 
