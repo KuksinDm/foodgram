@@ -3,7 +3,7 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from recipes.constants import MAX_AMOUNT_COOK_TIME, MAX_DIGITS_FOR_INPUT
+# from recipes.constants import MAX_AMOUNT_COOK_TIME, MAX_DIGITS_FOR_INPUT
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 User = get_user_model()
@@ -122,7 +122,6 @@ class IngredientInRecipeSerializer(serializers.ModelSerializer):
     measurement_unit = serializers.ReadOnlyField(
         source='ingredient.measurement_unit'
     )
-    amount = serializers.IntegerField()
 
     class Meta:
         model = RecipeIngredient
@@ -138,7 +137,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     ingredients = IngredientInRecipeSerializer(
         many=True,
         source='recipeingredient_set')
-    cooking_time = serializers.IntegerField()
 
     class Meta:
         model = Recipe
@@ -148,32 +146,6 @@ class RecipeSerializer(serializers.ModelSerializer):
             'image', 'text', 'cooking_time'
         )
 
-    def validate_amount(self, value):
-        if len(str(value)) > MAX_DIGITS_FOR_INPUT:
-            raise serializers.ValidationError(
-                'Ингредиент должен содержать не более '
-                f'{MAX_DIGITS_FOR_INPUT} знаков.'
-            )
-        if value > MAX_AMOUNT_COOK_TIME:
-            raise serializers.ValidationError(
-                'Максимальное количество ингредиента не может превышать '
-                f'{MAX_AMOUNT_COOK_TIME}.'
-            )
-        return value
-
-    def validate_cooking_time(self, value):
-        if len(str(value)) > MAX_DIGITS_FOR_INPUT:
-            raise serializers.ValidationError(
-                'Время приготовления должно содержать не более '
-                f'{MAX_DIGITS_FOR_INPUT} знаков.'
-            )
-        if value > MAX_AMOUNT_COOK_TIME:
-            raise serializers.ValidationError(
-                'Максимальное время приготовления не может превышать '
-                f'{MAX_AMOUNT_COOK_TIME} минут.'
-            )
-        return value
-
     def validate_ingredients(self, value):
         if not value:
             raise ValidationError(
@@ -181,8 +153,6 @@ class RecipeSerializer(serializers.ModelSerializer):
         unique_ingredients = set()
         for item in value:
             ingredient_id = item['ingredient']['id']
-            amount = item['amount']
-            self.validate_amount(amount)
             if ingredient_id in unique_ingredients:
                 raise ValidationError('Ингредиенты должны быть уникальными.')
             unique_ingredients.add(ingredient_id)
