@@ -3,7 +3,6 @@ from drf_extra_fields.fields import Base64ImageField
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-# from recipes.constants import MAX_AMOUNT_COOK_TIME, MAX_DIGITS_FOR_INPUT
 from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 
 User = get_user_model()
@@ -104,13 +103,6 @@ class IngredientSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ingredient
         fields = ('id', 'name', 'measurement_unit')
-
-
-"""
-я не до конца понял почему валидатор не срабатывает, есть подозрение что
-встроенная валидация поля в сеарилизаторе и валидация модели как то
-конфликтуют, но я не знаю. По этому я сделал кастомную валидацию
-"""
 
 
 class IngredientInRecipeSerializer(serializers.ModelSerializer):
