@@ -190,6 +190,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         self.validate_ingredients(ingredients_data)
         self.validate_image(image_data)
 
+        instance.name = validated_data.get('name', instance.name)
+        instance.text = validated_data.get('text', instance.text)
+        instance.cooking_time = validated_data.get('cooking_time',
+                                                   instance.cooking_time)
+        if image_data:
+            instance.image = image_data
+
         instance.save()
         instance.tags.set(tags_data)
         instance.recipeingredient_set.all().delete()
