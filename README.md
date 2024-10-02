@@ -7,12 +7,16 @@
 Все действия, связанные с публикацией рецептов и взаимодействием с ними, доступны только аутентифицированным пользователям.
 
 ### Cписок используемых технологий:
+
 <div align="center">
-	<img width="50" src="https://user-images.githubusercontent.com/25181517/183423507-c056a6f9-1ba8-4312-a350-19bcbc5a8697.png" alt="Python" title="Python"/>
-	<img width="50" src="https://github.com/marwin1991/profile-technology-icons/assets/62091613/9bf5650b-e534-4eae-8a26-8379d076f3b4" alt="Django" title="Django"/>
-  <img width="50" src="https://s3.amazonaws.com/media-p.slid.es/uploads/708405/images/4005243/django_rest_500x500.png" alt="DjangoRestFramework" title="DjangoRestFramework"/>
-	<img width="50" src="https://user-images.githubusercontent.com/25181517/192109061-e138ca71-337c-4019-8d42-4792fdaa7128.png" alt="Postman" title="Postman"/>
-  <img width="50" src="https://www.postgresql.org/media/img/about/press/elephant.png" alt="PostgreSQL" title="PostgreSQL"/>
+    <img width="50" src="https://user-images.githubusercontent.com/25181517/183423507-c056a6f9-1ba8-4312-a350-19bcbc5a8697.png" alt="Python" title="Python"/>
+    <img width="50" src="https://github.com/marwin1991/profile-technology-icons/assets/62091613/9bf5650b-e534-4eae-8a26-8379d076f3b4" alt="Django" title="Django"/>
+    <img width="50" src="https://s3.amazonaws.com/media-p.slid.es/uploads/708405/images/4005243/django_rest_500x500.png" alt="DjangoRestFramework" title="DjangoRestFramework"/>
+    <img width="50" src="https://user-images.githubusercontent.com/25181517/192109061-e138ca71-337c-4019-8d42-4792fdaa7128.png" alt="Postman" title="Postman"/>
+    <img width="50" src="https://www.postgresql.org/media/img/about/press/elephant.png" alt="PostgreSQL" title="PostgreSQL"/>
+    <img width="50" src="https://www.docker.com/wp-content/uploads/2022/03/Moby-logo.png" alt="Docker" title="Docker"/>
+    <img width="50" src="https://upload.wikimedia.org/wikipedia/commons/c/c5/Nginx_logo.svg" alt="Nginx" title="Nginx"/>
+    <img width="50" src="https://cdn.worldvectorlogo.com/logos/gunicorn.svg" alt="Gunicorn" title="Gunicorn"/>
 </div>
 
 ## Установка
@@ -100,4 +104,5 @@ GET http://127.0.0.1:8000/api/recipes/{id}/
 ```
 
 ## Автор:
-• [Дмитрий](https://github.com/KuksinDm) - Написал весь бэекэнд
+• [Дмитрий](https://github.com/KuksinDm) - Написал весь backend  
+• Frontend предоставлен Yandex.Practicum
